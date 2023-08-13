@@ -1,42 +1,56 @@
 package org.daruc;
 
-import javafx.scene.control.ToggleButton;
-import javafx.scene.layout.GridPane;
+import javafx.collections.FXCollections;
+import javafx.scene.control.ComboBox;
+import javafx.scene.layout.VBox;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.time.LocalDate;
+import java.time.Month;
+import java.util.*;
 
-public class CalendarPane extends GridPane {
+public class CalendarPane extends VBox {
 
-    private final Set<Integer> selectedDays = new HashSet<>();
-    private final TaskRepository taskRepository;
-    private final TaskPane taskPane;
+    private final YearPane yearPane;
+    private final DaysPane daysPane;
+    private final ComboBox<Month> monthComboBox;
+    private List<SelectedMonthChangedListener> selectedMonthChangedListenerList;
 
-    public CalendarPane(TaskRepository taskRepository, TaskPane taskPane) {
-        this.taskRepository = taskRepository;
-        this.taskPane = taskPane;
-        for (int i = 1; i <= 31; ++i) {
-            var button = new ToggleButton(String.valueOf(i));
-            button.setOnAction(actionEvent -> {
-                if (button.isSelected()) {
-                    selectedDays.add(Integer.valueOf(button.getText()));
-                } else {
-                    selectedDays.remove(Integer.valueOf(button.getText()));
-                }
-                showTaskListForSelectedDays();
-            });
-            add(button, i % 7, i/ 7);
-        }
+    public CalendarPane() {
+        daysPane = new DaysPane();
+        addSelectedMothChangedListener(daysPane);
+        var now = LocalDate.now();
+        yearPane = new YearPane();
+        yearPane.setSelectedYearChangedListener(daysPane);
+        yearPane.setYear(now.getYear());
+
+        getChildren().add(yearPane);
+        monthComboBox = new ComboBox<>();
+        monthComboBox.setValue(now.getMonth());
+        monthComboBox.setItems(FXCollections.observableList(Arrays.stream(Month.values()).toList()));
+        monthComboBox.setOnAction(actionEvent -> {
+            if (selectedMonthChangedListenerList != null) {
+                selectedMonthChangedListenerList.forEach(
+                        listener -> listener.onSelectedMonthChanged(monthComboBox.getValue()
+                        ));
+            }
+        });
+        getChildren().add(monthComboBox);
+
+        getChildren().add(daysPane);
     }
 
-    private void showTaskListForSelectedDays() {
-        List<Task> taskList = selectedDays.stream()
-                .map(day -> taskRepository.getTaskForDate(day))
-                .flatMap(Collection::stream)
-                .toList();
+    public void setSelectedYearChangedListener(SelectedYearChangedListener selectedYearChangedListener) {
+        yearPane.setSelectedYearChangedListener(selectedYearChangedListener);
+    }
 
-        taskPane.setTaskList(taskList);
+    public void addSelectedMothChangedListener(SelectedMonthChangedListener selectedMothChangedListener) {
+        if (selectedMonthChangedListenerList == null) {
+            selectedMonthChangedListenerList = new ArrayList<>();
+        }
+        selectedMonthChangedListenerList.add(selectedMothChangedListener);
+    }
+
+    public void setSelectedDaysChangedListener(SelectedDaysChangedListener selectedDaysChangedListener) {
+        daysPane.setSelectedDaysChangedListener(selectedDaysChangedListener);
     }
 }

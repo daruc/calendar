@@ -1,3 +1,5 @@
 package org.daruc;
 
-public record Task(int date, String description) {}
+import java.time.LocalDate;
+
+public record Task(LocalDate date, String description) {}
