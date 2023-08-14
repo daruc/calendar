@@ -1,61 +1,29 @@
 package org.daruc;
 
-import javafx.collections.FXCollections;
-import javafx.scene.control.ListView;
+import javafx.scene.control.*;
+import javafx.scene.layout.VBox;
 
-import java.time.LocalDate;
-import java.time.Month;
-import java.util.Collection;
-import java.util.List;
+import java.util.Optional;
 
-public class TaskPane extends ListView<Task> implements SelectedYearChangedListener, SelectedMonthChangedListener,
-        SelectedDaysChangedListener {
-
+public class TaskPane extends VBox {
+    private final TaskListView taskListView;
     private final TaskRepository taskRepository;
 
-    private List<Integer> allSelectedDays;
-    private Month selectedMonth;
-    private int selectedYear;
-    public TaskPane(TaskRepository taskRepository) {
+    public TaskPane(TaskListView taskListView, TaskRepository taskRepository) {
+        this.taskListView = taskListView;
         this.taskRepository = taskRepository;
-        var now = LocalDate.now();
-        selectedMonth = now.getMonth();
-        selectedYear = now.getYear();
-        allSelectedDays = List.of();
+        var addTaskButton = new Button("+");
+        addTaskButton.setOnAction(actionEvent -> openAddNewTaskDialog());
+        getChildren().add(taskListView);
+        getChildren().add(addTaskButton);
     }
 
-    @Override
-    public void onSelectedYearChanged(int year) {
-        selectedYear = year;
-        updateTaskList();
-    }
-
-    @Override
-    public void onSelectedMonthChanged(Month month) {
-        selectedMonth = month;
-        updateTaskList();
-    }
-
-    @Override
-    public void onSelectedDaysChanged(List<Integer> allSelectedDays) {
-        this.allSelectedDays = allSelectedDays;
-        updateTaskList();
-    }
-
-    private void updateTaskList() {
-        List<Task> taskList = allSelectedDays.stream()
-                .map(this::toCompleteDate)
-                .map(taskRepository::getTaskForDate)
-                .flatMap(Collection::stream)
-                .toList();
-        setTaskList(taskList);
-    }
-
-    private LocalDate toCompleteDate(Integer day) {
-        return LocalDate.of(selectedYear, selectedMonth, day);
-    }
-
-    private void setTaskList(List<Task> taskList) {
-        setItems(FXCollections.observableList(taskList));
+    private void openAddNewTaskDialog() {
+        var addNewTaskDialog = new AddNewTaskDialog();
+        Optional<Task> newTask = addNewTaskDialog.showAndWait();
+        newTask.ifPresent(task -> {
+            taskRepository.addTask(task);
+            taskListView.updateTaskList();
+        });
     }
 }

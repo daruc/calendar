@@ -12,10 +12,11 @@ public class App extends Application {
     public void start(Stage stage) {
         CalendarPane calendarPane = new CalendarPane();
         TaskRepository taskRepository = new TaskRepository();
-        TaskPane taskPane = new TaskPane(taskRepository);
-        calendarPane.setSelectedDaysChangedListener(taskPane);
-        calendarPane.addSelectedMothChangedListener(taskPane);
-        calendarPane.setSelectedYearChangedListener(taskPane);
+        TaskListView taskListView = new TaskListView(taskRepository);
+        calendarPane.setSelectedDaysChangedListener(taskListView);
+        calendarPane.addSelectedMothChangedListener(taskListView);
+        calendarPane.setSelectedYearChangedListener(taskListView);
+        TaskPane taskPane = new TaskPane(taskListView, taskRepository);
         var scene = new Scene(new VBox(calendarPane, taskPane), 640, 480);
         stage.setScene(scene);
         stage.show();
