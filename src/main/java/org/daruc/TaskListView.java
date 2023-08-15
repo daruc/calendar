@@ -1,7 +1,9 @@
 package org.daruc;
 
 import javafx.collections.FXCollections;
+import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
+import javafx.util.Callback;
 
 import java.time.LocalDate;
 import java.time.Month;
@@ -22,6 +24,25 @@ public class TaskListView extends ListView<Task> implements SelectedYearChangedL
         selectedMonth = now.getMonth();
         selectedYear = now.getYear();
         allSelectedDays = List.of();
+        setCellFactory(createCellFactory());
+    }
+
+    private static Callback<ListView<Task>, ListCell<Task>> createCellFactory() {
+        return new Callback<>() {
+            @Override
+            public ListCell<Task> call(ListView<Task> taskListView) {
+                return new ListCell<>() {
+                    @Override
+                    protected void updateItem(Task task, boolean empty) {
+                        super.updateItem(task, empty);
+                        if (!empty && task != null) {
+                            setText(task.date() + ": " + task.description());
+                            setGraphic(null);
+                        }
+                    }
+                };
+            }
+        };
     }
 
     @Override
