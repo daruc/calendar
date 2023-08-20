@@ -5,19 +5,19 @@ import javafx.scene.Scene;
 import javafx.scene.layout.VBox;
 import javafx.stage.Stage;
 
-
 public class App extends Application {
 
     @Override
     public void start(Stage stage) {
-        CalendarPane calendarPane = new CalendarPane();
-        TaskRepository taskRepository = new TaskRepository();
-        TaskListView taskListView = new TaskListView(taskRepository);
+        var calendarPane = new CalendarPane();
+        var storage = new FileStorage("storage.txt");
+        var taskRepository = new TaskRepository(storage);
+        var taskListView = new TaskListView(taskRepository);
         calendarPane.setSelectedDaysChangedListener(taskListView);
         calendarPane.addSelectedMothChangedListener(taskListView);
         calendarPane.setSelectedYearChangedListener(taskListView);
-        TaskPane taskPane = new TaskPane(taskListView, taskRepository);
-        var scene = new Scene(new VBox(calendarPane, taskPane), 640, 480);
+        var taskPane = new TaskPane(taskListView, taskRepository);
+        var scene = new Scene(new VBox(calendarPane, taskPane), 320, 480);
         stage.setScene(scene);
         stage.show();
     }
